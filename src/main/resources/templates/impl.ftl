@@ -12,12 +12,12 @@ import ${conf.base_package}.${conf.service_package}.I${beanName}Service;
 import ${conf.base_package}.${conf.mapper_package}.${beanName}Mapper;
 import ${conf.base_package}.${conf.dto_package}.${beanName}Dto;
 import java.util.List;
+import com.gateon.wms.base.common.util.*;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.gateon.wms.base.common.util.CommonUtil;
-import com.gateon.wms.base.common.util.RespUtil;
 import com.gateon.wms.base.entity.ServiceResult;
 import com.gateon.wms.base.enums.ServiceResultEnum;
+import org.apache.commons.lang3.StringUtils;
 /**
 * ${table.tableDesc} ${beanName}ServiceImpl
 * Created by loukai on ${.now}
@@ -51,6 +51,9 @@ public class ${beanName}ServiceImpl implements I${beanName}Service{
 
     @Override
     public ServiceResult insert(${beanName}Dto dto) {
+        if(StringUtils.isBlank(dto.getId())){
+            dto.setId(UuidGenerator.uuid());
+        }
 <#assign code_flag = 0>
 <#assign companyId_flag = 0>
 <#list propertysAndColumnInfos as propertysAndColumnInfo>
@@ -60,30 +63,47 @@ public class ${beanName}ServiceImpl implements I${beanName}Service{
     <#if propertysAndColumnInfo.propertyName == 'companyId' >
         <#assign companyId_flag = 1>
     </#if>
+    <#if propertysAndColumnInfo.propertyName == 'createTime'>
+        dto.setCreateTime(DateUtil.getDate(DateUtil.DATE_PATTERN));
+    </#if>
+    <#if propertysAndColumnInfo.isNullable == 0 && propertysAndColumnInfo.propertyName!='id'&& propertysAndColumnInfo.propertyType!='Integer'>
+        if (StringUtils.isBlank(dto.get${propertysAndColumnInfo.propertyName?cap_first}())) {
+            return  RespUtil.respFailMsg(ServiceResultEnum.CODE_1111.getKey(),"${propertysAndColumnInfo.columnRemarks}不能为空");
+        }
+    </#if>
 </#list>
 <#if code_flag == 1>
         if ( ${beanNameUncap_first}Mapper.getByCode(dto.getCode()<#if companyId_flag == 1>,dto.getCompanyId()</#if>) != null){
             return  RespUtil.respFailMsg(ServiceResultEnum.CODE_2222.getKey(),"代码重复");
         }
 </#if>
-
-
-        int row = ${beanNameUncap_first}Mapper.insert(dto);
-        if (row > 0) {
-            return  RespUtil.respSuccessMsg("数据新增成功");
-        }else {
-            return  RespUtil.respFailMsg(ServiceResultEnum.CODE_3002.getKey(),ServiceResultEnum.CODE_3002.getDesc());
-        }
+        ${beanNameUncap_first}Mapper.insert(dto);
+        return  RespUtil.respSuccessMsg("数据新增成功");
     }
 
     @Override
     public ServiceResult update(${beanName}Dto dto) {
+<#list propertysAndColumnInfos  as  propertysAndColumnInfo >
+    <#if propertysAndColumnInfo.propertyName == 'updateTime'>
+        dto.setUpdateTime(DateUtil.getDate(DateUtil.DATE_PATTERN));
+    </#if>
+    <#if propertysAndColumnInfo.isNullable == 0 && propertysAndColumnInfo.propertyName=='id' >
+        if (StringUtils.isBlank(dto.get${propertysAndColumnInfo.propertyName?cap_first}())) {
+            return  RespUtil.respFailMsg(ServiceResultEnum.CODE_1111.getKey(),"${propertysAndColumnInfo.columnRemarks}不能为空");
+        }
+    </#if>
+</#list>
         ${beanNameUncap_first}Mapper.update(dto);
         return  RespUtil.respSuccessMsg("数据更新成功");
     }
 
     @Override
     public ServiceResult delete(${beanName}Dto dto) {
+<#list propertysAndColumnInfos  as  propertysAndColumnInfo >
+    <#if propertysAndColumnInfo.propertyName == 'delTime'>
+        dto.setDelTime(DateUtil.getTime(DateUtil.DATE_PATTERN));
+    </#if>
+</#list>
         ${beanNameUncap_first}Mapper.delete(dto);
         return  RespUtil.respSuccessMsg("数据删除成功");
     }

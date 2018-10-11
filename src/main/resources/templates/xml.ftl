@@ -103,7 +103,6 @@
             `${propertysAndColumnInfo.columnName }` = <@mapperEl propertysAndColumnInfo.propertyName/> <#if propertysAndColumnInfo_has_next>,</#if>
         </if>
             </#if>
-            <#if propertysAndColumnInfo_has_next>,</#if>
         </#list>
 
         </set>
